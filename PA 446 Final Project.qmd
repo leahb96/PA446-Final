@@ -9,3 +9,34 @@ params:
   select_borough: Bronx
 ---
 
+### Overview
+
+Congestion pricing is a good idea if it targets people who can comfortably 
+afford to pay. However, for a variety of reasons, many people who cannot 
+comfortably afford tolls and fees commute by driving.
+
+In this project, I will create an interactive map showing the percent of people 
+in New York City's Census tracts who earn below different thresholds who drive 
+alone to work. This map could serve as a starting point for city planners to 
+better understand where lower income people tend to drive more and why (e.g. 
+high violent crime rates, lack of sanitation and maintenance, unreliable transit
+service, lack of transit access and active transportation infrastructure, etc.)
+despite transit being less costly per trip.
+
+### Set-up
+
+Here are the necessary packages for this project:
+
+```{r}
+library(tidyverse) # basic data manipulation & visualization
+library(naniar) # handling missing data
+library(tidycensus) # to access U.S. Census data
+library(shiny) # interactive website building
+library(usethis) # GitHub version control
+library(httr) # accessing APIs
+library(jsonlite) # parsing API data
+library(rpart) # for decision tree
+library(rpart.plot) # for visualizing decision tree
+library(parsnip) # ML model fitting
+library(workflows) # bundles pre-processing & modelling
+```
