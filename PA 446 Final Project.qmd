@@ -208,4 +208,22 @@ ggplot(borough_ct_long,
        subtitle = "Stylized by Income Bracket")
 ```
 
+I also made a simple parameterized report that can be customized by editing the 
+YAML where it says "select_borough."
+
+For this, I calculated the percent of commuters who drive in each borough. 
+
+```{r}
+drivers_pct_borough <- nyc_drivers %>%
+  select(Borough, B08119_001, B08119_010) %>%
+  sf::st_drop_geometry() %>%
+  group_by(Borough) %>%
+  summarize(
+    commuters = sum(B08119_001),
+    drivers = sum(B08119_010)
+    )
+
+drivers_pct_borough <- drivers_pct_borough %>%
+  mutate(pct_drive = drivers / commuters)
+```
 
