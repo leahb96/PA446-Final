@@ -303,3 +303,113 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+### Decision tree
+
+**What is the relationship between the percent of people earning under $50k and driving as a primary mode of commuting?**
+
+If you saw some housing data being pulled in at the beginning and wondered what
+it was for, you're about to find out.
+
+I'm going to run a decision tree that uses the following variables to predict
+the percent of people who drive to work in a given tract:
+
+- Borough
+- Percent of workers who earn less than $50k/year
+- Percent of housing units that are single-family detached
+
+The binary outcome I'm interested in is whether more than one in five commuters 
+drives to work in each tract.
+
+First, I need to do some extra data preparation.
+```{r}
+# There were some undefined values in tracts with no commuters (e.g. those which
+# are entirely industrial), so I'm going to omit those from my calculation.
+
+undefined_removed <- na.omit(nyc_drivers)
+
+# Let's see what the city-wide median rate of driving alone is by tract among
+# commuters. This method isn't perfect, but we don't have individual data, so 
+# this will have to do.
+
+print(
+  median(undefined_removed$pct_drive)
+)
+
+# I'm also curious about how these values are distributed, though that's not
+# super relevant to this section. 
+ggplot(undefined_removed, 
+       aes(y = pct_drive)) + 
+  geom_boxplot()
+
+# Adding binary indicator of a tract's car dependency
+undefined_removed <- undefined_removed %>%
+  mutate(
+    car_dependent = case_when(
+      pct_drive > 0.22 ~ "1",
+      pct_drive <= 0.22 ~ "0"
+    )
+  )
+```
+
+
+Next, I'll build the model.
+
+```{r}
+tree_spec <- decision_tree(
+  tree_depth = 5, # up to 5 iterations of “if/else” questions 
+  cost_complexity = 0) %>% # no auto-pruning
+  set_engine("rpart") %>% # standard R engine
+  set_mode("classification") 
+
+tree_fit <- workflow() %>% # containing "recipe" and model
+  add_model(tree_spec) %>% # the model to contain
+  add_formula( # what we want to know and how 
+    as.factor(car_dependent) ~ # Outcome of interest: Pct. who drive alone
+      Borough + # by the borough in which a tract is located
+      of_drivers_u50 + # percent of drivers who earn less than $50k
+      pct_detached_sf) %>% # based on these variables
+  fit(data = undefined_removed) # data source
+
+simple_tree <- tree_fit %>% # fitted model, model specs, and preprocessing info
+  extract_fit_parsnip() %>% # creating core model object
+  pluck("fit") # extracting elements
+```
+
+
+Finally, I'll visualize the model.
+
+```{r}
+# These lines format the margins.
+op <- par(no.readonly = TRUE) 
+on.exit(par(op), add = TRUE) 
+par(mar = c(4, 4, 2, 1))  
+
+# Drawing the flowchart
+rpart.plot(
+  simple_tree, # model/specs/preprocessing info from Line 92
+  type = 3,        # boxes + labels
+  extra = 104,     # predicted class + probabilities
+  fallen.leaves = TRUE, # so terminal nodes line up neatly
+  #roundint = FALSE, #prevents the warning
+  main = "Predicting a Tract's Car Dependence" # title
+)
+```
+
+The model first splits tracts where fewer than 7 percent of homes are single-
+family detached from all other tracts. From the branch of tracts where 
+single-family detached homes represent fewer than 7 percent of all units, tracts
+are split again between those in Manhattan and those in NYC's other four 
+boroughs. The terminal "leaf" at the end of the Manhattan branch shows that 
+there is a 99% probability that a given tract in Manhattan is not car dependent 
+(denoted by the zero at the top of the leaf) and a 1% chance that it is. The 13%
+at the bottom of the leaf indicates the error rate - i.e. 13% of tracts in this 
+leaf that were classified as not car-dependent actually were car-dependent.
+
+Remaining branches and leaves can be interpreted similarly. Broadly, we can see
+that tracts in Manhattan and where there are higher proportions of multifamily
+and attached single-family housing (there's definitely some confounding bias 
+here, since Manhattan is densely-developed) tend to have lower rates of car 
+dependence. While the role of driving commuters' incomes isn't too clear in 
+denser areas (like much of Manhattan), it becomes more pronounced when we look 
+at the outer boroughs and less-dense areas with more detached single family
+homes in general.
