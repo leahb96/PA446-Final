@@ -244,3 +244,62 @@ print(
 )
 ```
 
+### Shiny web app
+**Counts and percents of commuters who drive alone by income threshold**
+
+For this part, I took some help from Kyle Walker's *Mapping Census Data with R*, 
+specifically, Section 6.6.3: "Reactive mapping with Shiny," although I opted to 
+use geom_sf instead of leaflet.
+
+First, I need to create some categories to select from.
+```{r}
+# creating categories to reference 
+thresholds <- c("Percent of Commuters who Drive Alone" = "pct_drive",
+              "Percent of Housing Units: Single-Family, Detached" = "pct_detached_sf",
+              "Count of Drivers Under $25k" = "under_25k",
+              "Count of Drivers Under $50k" = "under_50k",
+              "Count of Drivers Under $75k" = "under_75k",
+              "Count of Drivers Over $75k" = "B08119_018",
+              "Drivers Under $25k as % of Drivers" = "of_drivers_u25",
+              "Drivers Under $50k as % of Drivers" = "of_drivers_u50",
+              "Drivers Under $75k as % of Drivers" = "of_drivers_u75",
+              "Drivers Over $75k as % of Drivers" = "of_drivers_o75")
+```
+
+Now I can run the actual app.
+```{r}
+# Setting up user interface
+ui <- fluidPage(
+  titlePanel("New Yorkers who drive to work alone by income"),
+
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "var",
+        label   = "I would like to know more about:",
+        choices = thresholds,
+        selected = "pct_drive"
+      )
+    ),
+    mainPanel(
+      plotOutput("map", height = 600)
+    )
+  )
+)
+
+# Establishing server connection
+server <- function(input, output, session) {
+
+# Interactive content to display  
+  output$map <- renderPlot({
+    ggplot(nyc_drivers) +
+      geom_sf(aes(fill = .data[[input$var]]), color = NA) +
+      scale_fill_viridis_c(option = "magma", na.value = "grey90") +
+      theme_minimal() +
+      labs(fill = names(thresholds)[thresholds == input$var])
+  })
+}
+
+shinyApp(ui, server)
+```
+
