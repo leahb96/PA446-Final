@@ -111,3 +111,36 @@ nyc_transport_earnings <- nyc_transport_earnings %>%
 #checking results
 unique(nyc_transport_earnings$Borough)
 ```
+
+# New table: Count of driving commuters who earn up to $__k by tract
+
+```{r}
+pivot <- nyc_transport_earnings %>%
+  # variables to keep
+  select(GEOID, # tract ID
+         Borough, # borough
+         geometry, # for mapping
+         variable, # variable code
+         estimate) %>% # count of commuters
+  # Change unit of analysis from estimate to tract
+  pivot_wider(
+    names_from = variable, # Unique income categories populating the old table's
+    # 'variable' column become columns in the new table. 
+    values_from = estimate) # populated w/ corresponding 'estimate' count
+
+# New columns: For each tract, there were __ commuters who earned __.
+nyc_drivers <- pivot %>% 
+  mutate(
+    under_25k = B08119_011 + B08119_012 + B08119_013, # <$25k
+    under_50k = under_25k + B08119_014 + B08119_015, # $25k-$49,999
+    under_75k = under_50k + B08119_016 + B08119_017, # $45k-$74,999 
+    pct_drive = round(B08119_010 / B08119_001, 3),
+    of_drivers_u25 = round(under_25k / B08119_010, 3),
+    of_drivers_u50 = round(under_50k / B08119_010, 3),
+    of_drivers_u75 = round(under_75k / B08119_010, 3),
+    of_drivers_o75 = round(B08119_018 / B08119_010, 3),
+    pct_detached_sf = round(B25024_002 / B25024_001, 3) 
+  )
+
+# Okay, the data seems to be in good shape. 
+```
