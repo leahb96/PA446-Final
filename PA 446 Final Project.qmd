@@ -227,3 +227,20 @@ drivers_pct_borough <- drivers_pct_borough %>%
   mutate(pct_drive = drivers / commuters)
 ```
 
+The simple report shows counts of total commuters, commuters who drive alone, 
+and commuters who fall within each income bracket, along with drivers as a 
+percent of all commuters, for the selected borough.
+
+```{r}
+# Total commuters
+print(
+  drivers_pct_borough %>%
+  filter(Borough == params$select_borough)
+)
+
+print(
+  borough_counts %>%
+    filter(Borough == params$select_borough)
+)
+```
+
