@@ -174,3 +174,38 @@ borough_counts <- nyc_drivers %>%
   )
 ```
 
+I then made a couple of stacked bar charts with insights from the new table.
+
+```{r}
+# Pivoting so the unit of observation is borough-income bracket 
+borough_ct_long <- borough_counts %>%
+  pivot_longer(
+    cols = u25:o75,
+    names_to = "income",
+    values_to = "count"
+  )
+
+# Count of NYC Drivers by Income Bracket & Stylized by Borough of Residence
+ggplot(borough_ct_long, 
+       aes(fill = Borough, 
+           y = count, 
+           x = income)) + 
+    geom_bar(
+      position = "stack", 
+      stat="identity") +
+  labs(title = "Count of NYC Drivers by Income Bracket",
+       subtitle = "Stylized by Borough of Residence")
+
+# Count of NYC Drivers by Borough & Stylized by Income Bracket
+ggplot(borough_ct_long, 
+       aes(fill = income, 
+           y = count, 
+           x = Borough)) + 
+    geom_bar(
+      position = "stack", 
+      stat="identity") +
+  labs(title = "Count of NYC Drivers by Borough",
+       subtitle = "Stylized by Income Bracket")
+```
+
+
