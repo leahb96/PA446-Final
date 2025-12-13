@@ -1,7 +1,9 @@
 ---
 title: "PA 446 Final Project"
 author: "Leah Berti"
-format: html
+format: 
+  html:
+    server: shiny
 editor: visual
 editor_options: 
   chunk_output_type: console
@@ -27,7 +29,7 @@ despite transit being less costly per trip.
 
 Here are the necessary packages for this project:
 
-```{r}
+```{r, warning = FALSE}
 library(tidyverse) # basic data manipulation & visualization
 library(naniar) # handling missing data
 library(tidycensus) # to access U.S. Census data
