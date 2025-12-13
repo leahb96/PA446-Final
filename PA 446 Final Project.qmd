@@ -40,3 +40,42 @@ library(rpart.plot) # for visualizing decision tree
 library(parsnip) # ML model fitting
 library(workflows) # bundles pre-processing & modelling
 ```
+
+Here's my Census API setup:
+
+```{r}
+readRenviron("~/.Renviron") # calling Census API key
+
+census_data23 <- load_variables(2023, # for 2023
+                                "acs5", # 5-year estimates
+                                cache = TRUE) # cache-ing for later access
+
+nyc_transport_earnings <- get_acs(geography = "tract", # tract-level data
+                                  # Means of transportation to work by worker's 
+                                  # earnings in the past 12 months
+                                  variables = c(
+                                    "B08119_001", # all commuters
+                                    "B08119_010", # Total: Car, truck or van - 
+                                                  # drove alone
+                                    # Subsets of drove-alone counts by income 
+                                    # bracket
+                                    "B08119_011", # $1 - $9,999
+                                    "B08119_012", # $10,000 - $14,999
+                                    "B08119_013", # $15,000 - $24,999
+                                    "B08119_014", # $25,000 - $34,999
+                                    "B08119_015", # $35,000 - $49,999
+                                    "B08119_016", # $50,000 - $64,999
+                                    "B08119_017", # $65,000 - $74,999
+                                    "B08119_018", # 75,000 or more
+                                    "B25024_001", # total housing units
+                                    "B25024_002"), # single-family detached
+                                  state = "NY",
+                                  county = c("New York", # Manhattan
+                                             "Kings", # Brooklyn
+                                             "Queens", # Queens
+                                             "Bronx", # the Bronx
+                                             "Richmond"), # Staten Island
+                                  year = 2023,
+                                  survey = "acs5",
+                                  geometry = TRUE) # for mapping
+```
