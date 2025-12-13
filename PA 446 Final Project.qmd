@@ -79,3 +79,35 @@ nyc_transport_earnings <- get_acs(geography = "tract", # tract-level data
                                   survey = "acs5",
                                   geometry = TRUE) # for mapping
 ```
+
+### Missing data
+
+```{r}
+# Counts and rates of missingness
+miss_var_summary(nyc_transport_earnings)
+
+# Fortunately, there is no missing data here.
+```
+
+In less favorable situations we could create a binary variable for blank, N/A, 
+or otherwise coded for missing values and graph them using a histogram to see 
+how missing-ness changes across values of particular x values.
+
+
+### Cleaned up, intuitive borough labels 
+
+```{r}
+# Adding borough column
+nyc_transport_earnings <- nyc_transport_earnings %>%
+  mutate( # adding columns
+    Borough = case_when( # borough name
+      str_detect(NAME, "Bronx") ~ "Bronx",
+      str_detect(NAME, "Richmond") ~ "Staten Island",
+      str_detect(NAME, "Kings") ~ "Brooklyn",
+      str_detect(NAME, "Queens") ~ "Queens",
+      str_detect(NAME, "New York County") ~ "Manhattan")
+  )
+
+#checking results
+unique(nyc_transport_earnings$Borough)
+```
