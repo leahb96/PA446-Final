@@ -144,3 +144,33 @@ nyc_drivers <- pivot %>%
 
 # Okay, the data seems to be in good shape. 
 ```
+
+### Summary stats & Visualizations
+
+Here's a basic choropleth map illustrating the percent of New York workers who 
+commute by driving alone.
+
+```{r}
+ggplot(nyc_drivers, 
+       aes(fill = pct_drive)) + geom_sf() +
+  theme_minimal()
+```
+
+
+For "big-picture" borough-level insights, I aggregated borough data.
+
+```{r}
+# Count of NYC commuters who drive alone by borough 
+# Broken down by income bracket 
+borough_counts <- nyc_drivers %>%
+  select(Borough, B08119_011:B08119_018) %>%
+  sf::st_drop_geometry() %>% # -geometry doesn't work
+  group_by(Borough) %>%
+  summarise(
+    u25 = sum(B08119_011 + B08119_012 + B08119_013), # under $25k
+    o25_u50 = sum(B08119_014 + B08119_015), # $25k-$50k
+    o50_u75 = sum(B08119_016 + B08119_017), # $50k-$75k
+    o75 = sum(B08119_018) # over $75k
+  )
+```
+
